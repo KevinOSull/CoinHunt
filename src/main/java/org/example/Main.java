@@ -466,8 +466,6 @@ public class Main {
 
     }
 
-    private static void foo(){
-        //this function does something
-    }
+
 
 }
