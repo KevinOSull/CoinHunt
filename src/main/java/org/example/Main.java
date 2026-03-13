@@ -20,7 +20,7 @@ public class Main {
     }
 
     public enum ScreenState{
-        START_MENU,MAIN_MENU_ITEMS_LIST,SET_GRID_MENU_SIZE,USER_SET_GRID_SIZE,SET_DIFFICULTY_LEVEL,START_GAME,EXIT_GAME,BACK_TO_MAIN_MENU,UNKNOWN_STATE
+        START_MENU,MAIN_MENU_ITEMS_LIST,SET_GRID_MENU_SIZE,USER_SET_GRID_SIZE,SET_DIFFICULTY_LEVEL,START_GAME,EXIT_GAME,BACK_TO_MAIN_MENU,BACK_TO_SELECT_GRID_SIZE,UNKNOWN_STATE
     }
 
     public enum PlayerDirection{
@@ -45,6 +45,7 @@ public class Main {
     private static int selectedBoardMenuIndex = 0;
     private static int selectedGridIndex = 0;
     private static int selectedDifficultyIndex = 0;
+    private static int monsterCount = 0;
     private static int x;
     private static int y;
     private static int width;
@@ -368,6 +369,30 @@ public class Main {
                 break;
 
             default: System.out.println("SOMETHING WENT WRONG!!!!");
+        }
+    }
+
+    private static void applyDifficultySettings(){
+        switch(selectedDifficultyIndex){
+            case 0: monsterCount = 1;
+                break;
+
+            case 1: monsterCount = 2;
+                break;
+
+            case 2: monsterCount = 3;
+                break;
+
+            case 3: monsterCount = 4;
+                break;
+
+            case 4: monsterCount = 5;
+                break;
+
+            case 5: screenState = ScreenState.BACK_TO_SELECT_GRID_SIZE;
+                break;
+
+            default: System.out.println("ERROR: SOMETHING WENT WRONG!!!!!");
         }
     }
 
