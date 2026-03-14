@@ -38,6 +38,10 @@ public class Main {
     private static final String[] MAIN_MENU_ITEMS = {"Choose Preset Size","Set Custom Size","Back to Main"};
     private static final String[] GRID_GAME_BOARD_SIZE = {"10 x 10", "15 x 15", "20 x 20","30 x 30", "40 x 40", "50 x 50","Back"};
     private static final String[] DIFFICULTY_LEVEL = {"Very Easy","Easy","Medium","Hard","Very Hard","Back"};
+    private static ArrayList<String>monsterList = new ArrayList<>();
+    private static int monsterRow = 0;
+    private static int monsterCol = 0;
+    private static int monsterPositions[][] = new int [monsterRow][monsterCol];
 
     private static final String GAME_HEADER_NAME = "Coin Hunter";
 
@@ -166,11 +170,11 @@ public class Main {
         }
     }
 
-    private static void determineGameDifficulty(){
+   private static void determineGameDifficulty(){
         if(selectedDifficultyIndex == 5){
             screenState = ScreenState.SET_GRID_MENU_SIZE;
         }else{
-            //do something with the difficulty level
+            applyDifficultySettings();
         }
     }
 
@@ -471,7 +475,7 @@ public class Main {
         return false;
     }
 
-    private static void keepTrackOfMonsterPosition() {
+    /*private static void keepTrackOfMonsterPosition() {
         boolean isTaken = true;
         while(isTaken) {
             monsterStartingPositionRow = RAND.nextInt(gridSize);
@@ -481,7 +485,21 @@ public class Main {
                 break;
             }
         }
+    }*/
+
+    private static void keepTrackOfMonsterPosition(){
+        while(monsterList.size() < monsterCount){
+            monsterStartingPositionRow = RAND.nextInt(gridSize);
+            monsterStartingPositionCol = RAND.nextInt(gridSize);
+            if (monsterStartingPositionRow != rowStartingPosition || monsterStartingPositionCol != colStartingPosition) {
+                gameGrid[monsterStartingPositionRow][monsterStartingPositionCol] = "M";
+
+            }
+        }
     }
+
+
+
 
     private static boolean isItemPlacementOutOfBounds() {
         return true;
