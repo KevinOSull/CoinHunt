@@ -38,18 +38,18 @@ public class Main {
     private static final String[] MAIN_MENU_ITEMS = {"Choose Preset Size","Set Custom Size","Back to Main"};
     private static final String[] GRID_GAME_BOARD_SIZE = {"10 x 10", "15 x 15", "20 x 20","30 x 30", "40 x 40", "50 x 50","Back"};
     private static final String[] DIFFICULTY_LEVEL = {"Very Easy","Easy","Medium","Hard","Very Hard","Back"};
-    private static ArrayList<String>monsterList = new ArrayList<>();
     private static int monsterRow = 0;
     private static int monsterCol = 0;
-    private static int monsterPositions[][] = new int [monsterRow][monsterCol];
-
+    private static ArrayList<int[]>monsterList = new ArrayList<>();
+    private static ArrayList<int[]>coinList = new ArrayList<>();
     private static final String GAME_HEADER_NAME = "Coin Hunter";
-
     private static int selectedMainIndex = 0;
     private static int selectedBoardMenuIndex = 0;
     private static int selectedGridIndex = 0;
     private static int selectedDifficultyIndex = 0;
+    private static int selectedNumberOfCoinsIndex = 0;
     private static int monsterCount = 0;
+    private static int coinCount = 0;
     private static int x;
     private static int y;
     private static int width;
@@ -175,6 +175,8 @@ public class Main {
             screenState = ScreenState.SET_GRID_MENU_SIZE;
         }else{
             applyDifficultySettings();
+            screenState = ScreenState.START_GAME;
+            setupNewGame();
         }
     }
 
@@ -307,36 +309,39 @@ public class Main {
         monsterMovement();
     }
 
-    private static void monsterMovement() {
-        int oldRow = monsterStartingPositionRow;
-        int oldCol = monsterStartingPositionCol;
-        switch(playerDirection) {
-            case UP:
-                moveMonsterLeft();
-                break;
+    private static void monsterMovement(){
+        for(int i = 0; i < monsterList.size(); i++){
+            int monsterPosition[] = monsterList.get(i);
+            int oldRow = monsterPosition[0];
+            int oldCol = monsterPosition[1];
+            row = oldRow;
+            col = oldCol;
+            switch(playerDirection){
+                case UP:
+                    moveMonsterLeft();
+                    break;
 
-            case DOWN:
-                moveMonsterRight();
-                break;
+                case DOWN:
+                    moveMonsterRight();
+                    break;
 
-            case LEFT:
-                moveMonsterDown();
-                break;
+                case LEFT:
+                    moveMonsterDown();
+                    break;
 
-            case RIGHT:
-                moveMonsterForward();
-                break;
-
-            case UNKNOWN:
-                System.out.println("ERROR: PROBLEM WITH MOVEMENT! ");
-                break;
+                case RIGHT:
+                    moveMonsterForward();
+                    break;
+            }
+            if(checkBounds(row,col)){
+                row = RAND.nextInt(gridSize);
+                col = RAND.nextInt(gridSize);
+            }
+            monsterPosition[0] = row;
+            monsterPosition[1] = col;
+            gameGrid[oldRow][oldCol] = "*";
+            gameGrid[row][col] = "M";
         }
-        if(checkBounds(monsterStartingPositionRow,monsterStartingPositionCol)) {
-            monsterStartingPositionRow = RAND.nextInt(gridSize);
-            monsterStartingPositionCol = RAND.nextInt(gridSize);
-        }
-        gameGrid[oldRow][oldCol] = "*";
-        gameGrid[monsterStartingPositionRow][monsterStartingPositionCol] = "M";
     }
 
     private static boolean checkBounds(int row,int col) {
@@ -379,31 +384,37 @@ public class Main {
     private static void applyDifficultySettings(){
         switch(selectedDifficultyIndex){
             case 0: monsterCount = 1;
+                    coinCount = 5;
                 break;
 
             case 1: monsterCount = 2;
+                    coinCount = 4;
                 break;
 
             case 2: monsterCount = 3;
+                    coinCount = 3;
                 break;
 
             case 3: monsterCount = 4;
+                    coinCount = 2;
                 break;
 
             case 4: monsterCount = 5;
+                    coinCount = 1;
                 break;
 
             case 5: screenState = ScreenState.BACK_TO_SELECT_GRID_SIZE;
                 break;
 
-            default: System.out.println("ERROR: SOMETHING WENT WRONG!!!!!");
+            default: System.out.println("ERROR: SOMETHING WENT WRONG WITH NUMBER OF MONSTERS!!!");
         }
     }
+
+
 
     private static void setProperties() {
         boardStartRow = y + Headers.START_GAME_HEADER.length;
         boardStartCol = (width - gridSize)/2;
-        //screenState = ScreenState.START_GAME;
         screenState = ScreenState.SET_DIFFICULTY_LEVEL;
     }
 
@@ -419,12 +430,12 @@ public class Main {
         initializeGameBoard();
         rowStartingPosition = gridSize / 2;
         colStartingPosition = gridSize /2;
-        keepTrackOfMonsterPosition();
+        placeEntities(monsterList,monsterCount,"M");
+        placeEntities(coinList,coinCount,"C");
     }
 
     private static void drawGameBoard() {
         TextGraphics tg = screen.newTextGraphics();
-        //initializeGameBoard();
         gameGrid[rowStartingPosition][colStartingPosition] = "P";
         for(int i = 0; i < gridSize; i++) {
             for(int j = 0; j < gridSize; j++) {
@@ -453,19 +464,19 @@ public class Main {
     }
 
     private static void moveMonsterForward() {
-        monsterStartingPositionRow--;
+        row--;
     }
 
     private static void moveMonsterLeft() {
-        monsterStartingPositionCol--;
+        col--;
     }
 
     private static void moveMonsterRight() {
-        monsterStartingPositionCol++;
+        col++;
     }
 
     private static void moveMonsterDown() {
-        monsterStartingPositionRow++;
+        row++;
     }
 
     private static boolean isMovementOutOfBounds(int row,int col) {
@@ -475,7 +486,117 @@ public class Main {
         return false;
     }
 
-    /*private static void keepTrackOfMonsterPosition() {
+
+    private static void placeEntities(ArrayList<int[]>list,int entityCount,String value){
+        while(list.size() < entityCount){
+            row = RAND.nextInt(gridSize);
+            col = RAND.nextInt(gridSize);
+            if(!(row == rowStartingPosition && col == colStartingPosition) && (gameGrid[row][col] == "*")){
+                gameGrid[row][col] = value;
+                int pos[] = new int[2];
+                pos[0] = row;
+                pos[1] = col;
+                list.add(pos);
+            }
+        }
+    }
+
+    private static boolean isItemPlacementOutOfBounds() {
+        return true;
+    }
+
+    private static void placeSymbolOnBoard() {
+
+    }
+
+
+
+
+    /*private static void monsterMovement() {
+        //int oldRow = monsterStartingPositionRow;
+        //int oldCol = monsterStartingPositionCol;
+        switch(playerDirection) {
+            case UP:
+                moveMonsterLeft();
+                break;
+
+            case DOWN:
+                moveMonsterRight();
+                break;
+
+            case LEFT:
+                moveMonsterDown();
+                break;
+
+            case RIGHT:
+                moveMonsterForward();
+                break;
+
+            case UNKNOWN:
+                System.out.println("ERROR: PROBLEM WITH MOVEMENT! ");
+                break;
+        }
+
+        for(int i = 0; i < monsterList.size(); i++){
+            int monsterPosition[] = monsterList.get(i);
+            int oldRow = monsterPosition[0];
+            int oldCol = monsterPosition[1];
+            row = oldRow;
+            col = oldCol;
+
+            if(checkBounds(row,col)){
+                row = RAND.nextInt(gridSize);
+                col = RAND.nextInt(gridSize);
+                monsterPosition[0] = row;
+                monsterPosition[1] = col;
+
+            }
+            gameGrid[oldRow][oldCol] = "*";
+            gameGrid[row][col] = "M";
+        }
+        if(checkBounds(monsterStartingPositionRow,monsterStartingPositionCol)) {
+            monsterStartingPositionRow = RAND.nextInt(gridSize);
+            monsterStartingPositionCol = RAND.nextInt(gridSize);
+        }
+        gameGrid[oldRow][oldCol] = "*";
+        gameGrid[row][col] = "M";
+    }*/
+
+    /*
+    private static void keepTrackOfMonsterPosition(){
+        while(monsterList.size() < monsterCount){
+            row = RAND.nextInt(gridSize);
+            col = RAND.nextInt(gridSize);
+            if(row != rowStartingPosition && col != colStartingPosition){
+                gameGrid[row][col] = "M";
+                int monsterPos[] = new int[2];
+                monsterPos[0] = row;
+                monsterPos[1] = col;
+                monsterList.add(monsterPos);
+            }
+        }
+    }
+
+    private static void keepTrackOfCoinPositions(){
+        while(coinList.size() < coinCount){
+            row = RAND.nextInt(gridSize);
+            col = RAND.nextInt(gridSize);
+            if(row != rowStartingPosition && col != colStartingPosition){
+                gameGrid[row][col] = "C";
+                int coinPos[] = new int[2];
+                coinPos[0] = row;
+                coinPos[1] = col;
+                coinList.add(coinPos);
+            }
+        }
+    }
+
+
+
+
+
+
+    private static void keepTrackOfMonsterPosition() {
         boolean isTaken = true;
         while(isTaken) {
             monsterStartingPositionRow = RAND.nextInt(gridSize);
@@ -487,7 +608,7 @@ public class Main {
         }
     }*/
 
-    private static void keepTrackOfMonsterPosition(){
+    /*private static void keepTrackOfMonsterPosition(){
         while(monsterList.size() < monsterCount){
             monsterStartingPositionRow = RAND.nextInt(gridSize);
             monsterStartingPositionCol = RAND.nextInt(gridSize);
@@ -496,18 +617,14 @@ public class Main {
 
             }
         }
-    }
+    }*/
 
 
 
 
-    private static boolean isItemPlacementOutOfBounds() {
-        return true;
-    }
 
-    private static void placeSymbolOnBoard() {
 
-    }
+
 
 
 
