@@ -76,6 +76,7 @@ public class Main {
     private static int gridSize;
     private static int row;
     private static int col;
+
     public static void main(String[] args) {
         try {
             createScreen();
@@ -316,7 +317,24 @@ public class Main {
             int oldCol = monsterPosition[1];
             row = oldRow;
             col = oldCol;
-            switch(playerDirection){
+            moveMonsterBaedOnDirection();
+            handleOutOfBounds();
+            monsterPosition[0] = row;
+            monsterPosition[1] = col;
+            gameGrid[oldRow][oldCol] = "*";
+            gameGrid[row][col] = "M";
+        }
+    }
+
+    private static void handleOutOfBounds(){
+        if(checkBounds(row,col)){
+            row = RAND.nextInt(gridSize);
+            col = RAND.nextInt(gridSize);
+        }
+    }
+
+    private static void moveMonsterBaedOnDirection(){
+        switch(playerDirection){
                 case UP:
                     moveMonsterLeft();
                     break;
@@ -332,16 +350,10 @@ public class Main {
                 case RIGHT:
                     moveMonsterForward();
                     break;
+
+                default:
+                    System.out.println("ERROR: SOMETHING WENT WRONG!!!");
             }
-            if(checkBounds(row,col)){
-                row = RAND.nextInt(gridSize);
-                col = RAND.nextInt(gridSize);
-            }
-            monsterPosition[0] = row;
-            monsterPosition[1] = col;
-            gameGrid[oldRow][oldCol] = "*";
-            gameGrid[row][col] = "M";
-        }
     }
 
     private static boolean checkBounds(int row,int col) {
