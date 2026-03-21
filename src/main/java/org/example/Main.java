@@ -221,8 +221,18 @@ public class Main {
             case START_GAME:
                 drawOperationHeading(Headers.START_GAME_HEADER);
                 drawGameBoard();
+                displayScore(10,40,"Player Score: ",playerScore);
+                displayScore(10,41,"Monster Score: ",monsterScore);
                 break;
         }
+    }
+
+    private static void displayScore(int col,int row,String playerName,int score) throws IOException {
+        TextGraphics tg = screen.newTextGraphics();
+        String textToDraw = playerName + score;
+        tg.putString(col,row,textToDraw);
+
+
     }
 
     private static void drawMenu(int index,String[]menuItems,String[]headerArt)throws IOException{
