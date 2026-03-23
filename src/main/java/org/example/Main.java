@@ -231,8 +231,29 @@ public class Main {
         TextGraphics tg = screen.newTextGraphics();
         String textToDraw = playerName + score;
         tg.putString(col,row,textToDraw);
+    }
 
+    private static void determinWinner(){
+        if(playerScore > monsterScore){
+            // DO SOMETHING
+        }else if(monsterScore < playerScore){
+            // DO SOMETHING
+        }
+    }
 
+    private static boolean isHandleCoinCollection(){
+        if(gameGrid[row][col].equals("C")){
+            for(int i = 0; i < coinList.size(); i++){
+                int coinPosition[] = coinList.get(i);
+                int coinRow = coinPosition[0];
+                int coinCol = coinPosition[1];
+                if(coinRow == row && coinCol == col){
+                    coinList.remove(coinPosition);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static void drawMenu(int index,String[]menuItems,String[]headerArt)throws IOException{
@@ -327,7 +348,7 @@ public class Main {
             int oldCol = monsterPosition[1];
             row = oldRow;
             col = oldCol;
-            moveMonsterBaedOnDirection();
+            moveMonsterBasedOnDirection();
             handleOutOfBounds();
             monsterPosition[0] = row;
             monsterPosition[1] = col;
@@ -343,7 +364,7 @@ public class Main {
         }
     }
 
-    private static void moveMonsterBaedOnDirection(){
+    private static void moveMonsterBasedOnDirection(){
         switch(playerDirection){
                 case UP:
                     moveMonsterLeft();
@@ -471,34 +492,75 @@ public class Main {
 
     private static void movePlayerForward() {
         rowStartingPosition--;
+        syncPlayerPosition();
+        if(checkIfPlayerOrMonsterPickedUpCoin("P")){
+            playerScore++;
+        }
     }
 
     private static void movePlayerLeft() {
         colStartingPosition--;
+        syncPlayerPosition();
+        if(checkIfPlayerOrMonsterPickedUpCoin("P")){
+            playerScore++;
+        }
     }
 
     private static void movePlayerRight() {
         colStartingPosition++;
+        syncPlayerPosition();
+        if(checkIfPlayerOrMonsterPickedUpCoin("P")){
+            playerScore++;
+        }
     }
 
     private static void movePlayerDown() {
         rowStartingPosition++;
+        syncPlayerPosition();
+        if(checkIfPlayerOrMonsterPickedUpCoin("P")){
+            playerScore++;
+        }
+    }
+
+    private static void syncPlayerPosition(){
+        row = rowStartingPosition;
+        col = colStartingPosition;
     }
 
     private static void moveMonsterForward() {
         row--;
+        if(checkIfPlayerOrMonsterPickedUpCoin("M")){
+            monsterScore++;
+        }
     }
 
     private static void moveMonsterLeft() {
         col--;
+        if(checkIfPlayerOrMonsterPickedUpCoin("M")){
+            monsterScore++;
+        }
     }
 
     private static void moveMonsterRight() {
         col++;
+        if(checkIfPlayerOrMonsterPickedUpCoin("M")){
+            monsterScore++;
+        }
     }
 
     private static void moveMonsterDown() {
         row++;
+        if(checkIfPlayerOrMonsterPickedUpCoin("M")){
+            monsterScore++;
+        }
+    }
+
+    private static boolean checkIfPlayerOrMonsterPickedUpCoin(String player){
+        if(isHandleCoinCollection()){
+            gameGrid[row][col] = player;
+            return true;
+        }
+        return false;
     }
 
     private static boolean isMovementOutOfBounds(int row,int col) {
