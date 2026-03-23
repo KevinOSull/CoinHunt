@@ -242,13 +242,11 @@ public class Main {
     }
 
     private static boolean isHandleCoinCollection(){
-        if(gameGrid[row][col].equals("C")){
+        if (!checkBounds(row, col) && "C".equals(gameGrid[row][col])) {
             for(int i = 0; i < coinList.size(); i++){
-                int coinPosition[] = coinList.get(i);
-                int coinRow = coinPosition[0];
-                int coinCol = coinPosition[1];
-                if(coinRow == row && coinCol == col){
-                    coinList.remove(coinPosition);
+                int[] coinPosition = coinList.get(i);
+                if(coinPosition[0] == row && coinPosition[1] == col){
+                    coinList.remove(i);
                     return true;
                 }
             }
@@ -307,27 +305,31 @@ public class Main {
             return;
         }
         char c = Character.toLowerCase(k.getCharacter());
-        int oldRow = rowStartingPosition;
-        int oldCol = colStartingPosition;
+        //int oldRow = rowStartingPosition;
+        //int oldCol = colStartingPosition;
         switch(c) {
             case 'w':
                 playerDirection = PlayerDirection.UP;
-                movePlayerForward();
+                movePlayer(-1,0);
+                //movePlayerForward();
                 break;
 
             case 'a':
                 playerDirection = PlayerDirection.LEFT;
-                movePlayerLeft();
+                movePlayer(0,-1);
+                //movePlayerLeft();
                 break;
 
             case 's':
                 playerDirection = PlayerDirection.DOWN;
-                movePlayerDown();
+                movePlayer(1,0);
+                //movePlayerDown();
                 break;
 
             case 'd':
                 playerDirection = PlayerDirection.RIGHT;
-                movePlayerRight();
+                movePlayer(0,1);
+                //movePlayerRight();
                 break;
 
             default:
@@ -337,8 +339,20 @@ public class Main {
             rowStartingPosition = RAND.nextInt(gridSize);
             colStartingPosition = RAND.nextInt(gridSize);
         }
-        gameGrid[oldRow][oldCol] = "*";
+        //gameGrid[oldRow][oldCol] = "*";
         monsterMovement();
+    }
+
+    private static void movePlayer(int deltaRow,int deltaCol){
+        int oldRow = rowStartingPosition;
+        int oldCol = colStartingPosition;
+        rowStartingPosition +=deltaRow;
+        colStartingPosition +=deltaCol;
+        syncPlayerPosition();
+        if(hasPlayerOrMonsterPickedUpCoin("P")){
+            playerScore++;
+        }
+        gameGrid[oldRow][oldCol] = "*";
     }
 
     private static void monsterMovement(){
@@ -453,8 +467,6 @@ public class Main {
         }
     }
 
-
-
     private static void setProperties() {
         boardStartRow = y + Headers.START_GAME_HEADER.length;
         boardStartCol = (width - gridSize)/2;
@@ -490,38 +502,6 @@ public class Main {
         }
     }
 
-    private static void movePlayerForward() {
-        rowStartingPosition--;
-        syncPlayerPosition();
-        if(checkIfPlayerOrMonsterPickedUpCoin("P")){
-            playerScore++;
-        }
-    }
-
-    private static void movePlayerLeft() {
-        colStartingPosition--;
-        syncPlayerPosition();
-        if(checkIfPlayerOrMonsterPickedUpCoin("P")){
-            playerScore++;
-        }
-    }
-
-    private static void movePlayerRight() {
-        colStartingPosition++;
-        syncPlayerPosition();
-        if(checkIfPlayerOrMonsterPickedUpCoin("P")){
-            playerScore++;
-        }
-    }
-
-    private static void movePlayerDown() {
-        rowStartingPosition++;
-        syncPlayerPosition();
-        if(checkIfPlayerOrMonsterPickedUpCoin("P")){
-            playerScore++;
-        }
-    }
-
     private static void syncPlayerPosition(){
         row = rowStartingPosition;
         col = colStartingPosition;
@@ -529,33 +509,33 @@ public class Main {
 
     private static void moveMonsterForward() {
         row--;
-        if(checkIfPlayerOrMonsterPickedUpCoin("M")){
+        if(hasPlayerOrMonsterPickedUpCoin("M")){
             monsterScore++;
         }
     }
 
     private static void moveMonsterLeft() {
         col--;
-        if(checkIfPlayerOrMonsterPickedUpCoin("M")){
+        if(hasPlayerOrMonsterPickedUpCoin("M")){
             monsterScore++;
         }
     }
 
     private static void moveMonsterRight() {
         col++;
-        if(checkIfPlayerOrMonsterPickedUpCoin("M")){
+        if(hasPlayerOrMonsterPickedUpCoin("M")){
             monsterScore++;
         }
     }
 
     private static void moveMonsterDown() {
         row++;
-        if(checkIfPlayerOrMonsterPickedUpCoin("M")){
+        if(hasPlayerOrMonsterPickedUpCoin("M")){
             monsterScore++;
         }
     }
 
-    private static boolean checkIfPlayerOrMonsterPickedUpCoin(String player){
+    private static boolean hasPlayerOrMonsterPickedUpCoin(String player){
         if(isHandleCoinCollection()){
             gameGrid[row][col] = player;
             return true;
@@ -569,7 +549,6 @@ public class Main {
         }
         return false;
     }
-
 
     private static void placeEntities(ArrayList<int[]>list,int entityCount,String value){
         while(list.size() < entityCount){
@@ -585,13 +564,116 @@ public class Main {
         }
     }
 
-    private static boolean isItemPlacementOutOfBounds() {
-        return true;
-    }
 
-    private static void placeSymbolOnBoard() {
 
-    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /*private static boolean isHandleCoinCollection(){
+        if(gameGrid[row][col].equals("C")){
+            for(int i = 0; i < coinList.size(); i++){
+                int coinPosition[] = coinList.get(i);
+                int coinRow = coinPosition[0];
+                int coinCol = coinPosition[1];
+                if(coinRow == row && coinCol == col){
+                    coinList.remove(coinPosition);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }*/
+
+
+
+
 
 
 
@@ -701,10 +783,81 @@ public class Main {
 
             }
         }
+
+        private static void monsterMovement(){
+    for(int i = 0; i < monsterList.size(); i++){
+        int[] monsterPosition = monsterList.get(i);
+        int mRow = monsterPosition[0];
+        int mCol = monsterPosition[1];
+
+        // move based on direction
+        switch(playerDirection){
+            case UP -> mCol--;       // moveMonsterLeft
+            case DOWN -> mCol++;     // moveMonsterRight
+            case LEFT -> mRow++;     // moveMonsterDown
+            case RIGHT -> mRow--;    // moveMonsterForward
+        }
+
+        // check out of bounds
+        if(checkBounds(mRow, mCol)){
+            mRow = RAND.nextInt(gridSize);
+            mCol = RAND.nextInt(gridSize);
+        }
+
+        // collect coin
+        if(gameGrid[mRow][mCol] != null && gameGrid[mRow][mCol].equals("C")){
+            monsterScore++;
+            coinList.removeIf(c -> c[0] == mRow && c[1] == mCol);
+        }
+
+        // update grid
+        gameGrid[monsterPosition[0]][monsterPosition[1]] = "*";
+        gameGrid[mRow][mCol] = "M";
+
+        // update monster list
+        monsterPosition[0] = mRow;
+        monsterPosition[1] = mCol;
+    }
+}
+
+
+
+
+
     }*/
 
 
+    /*private static void movePlayerForward() {
+        rowStartingPosition--;
+        syncPlayerPosition();
+        if(checkIfPlayerOrMonsterPickedUpCoin("P")){
+            playerScore++;
+        }
+    }
 
+    private static void movePlayerLeft() {
+        colStartingPosition--;
+        syncPlayerPosition();
+        if(checkIfPlayerOrMonsterPickedUpCoin("P")){
+            playerScore++;
+        }
+    }
+
+    private static void movePlayerRight() {
+        colStartingPosition++;
+        syncPlayerPosition();
+        if(checkIfPlayerOrMonsterPickedUpCoin("P")){
+            playerScore++;
+        }
+    }
+
+    private static void movePlayerDown() {
+        rowStartingPosition++;
+        syncPlayerPosition();
+        if(checkIfPlayerOrMonsterPickedUpCoin("P")){
+            playerScore++;
+        }
+    }*/
 
 
 
