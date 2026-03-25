@@ -16,7 +16,7 @@ import java.util.Random;
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public enum GameStatus{
-        GAME_ON,GAME_OVER,UNKNOWN_STATE
+        GAME_IN_PROGRESS,GAME_OVER,UNKNOWN_STATE
     }
 
     public enum ScreenState{
@@ -90,8 +90,9 @@ public class Main {
 
     }
     private static void runGameLoop()throws IOException {
+        gameStatus = GameStatus.GAME_IN_PROGRESS;
         screenState = ScreenState.START_MENU;
-        while(isGameRunning) {
+        while(isGameRunning && gameStatus != GameStatus.GAME_OVER) {
             screen.clear();
             renderCurrentScreen();
             screen.refresh();
@@ -221,24 +222,46 @@ public class Main {
             case START_GAME:
                 drawOperationHeading(Headers.START_GAME_HEADER);
                 drawGameBoard();
-                displayScore(10,40,"Player Score: ",playerScore);
-                displayScore(10,41,"Monster Score: ",monsterScore);
+                adjustScorePosition();
                 break;
         }
     }
 
-    private static void displayScore(int col,int row,String playerName,int score) throws IOException {
+    private static void adjustScorePosition() throws IOException {
+        if(gridSize == 50){
+            displayScore(5,40,"Player Score:",playerScore);
+            displayScore(5,41,"Monster Score:",monsterScore);
+        }else{
+            displayScore(10,40,"Player Score: ",playerScore);
+            displayScore(10,41,"Monster Score: ",monsterScore);
+        }
+    }
+
+    private static void displayScore(int row,int col,String playerName,int score) throws IOException {
         TextGraphics tg = screen.newTextGraphics();
-        String textToDraw = playerName + score;
-        tg.putString(col,row,textToDraw);
+        String textToDraw = playerName + " " + score;
+        tg.putString(row,col,textToDraw);
     }
 
     private static void determinWinner(){
-        if(playerScore > monsterScore){
-            // DO SOMETHING
-        }else if(monsterScore < playerScore){
-            // DO SOMETHING
+        if(coinList.size() == 0){
+            gameStatus = GameStatus.GAME_OVER;
+            if(playerScore > monsterScore){
+                //player wins
+                displayWhoWon(0,0,"PLAYER WINS!");
+            }else if(monsterScore > playerScore){
+                //monster wins
+                displayWhoWon(0,0,"COMPUTER WINS!");
+            }else{
+                // draw
+                displayWhoWon(0,0,"DRAW!");
+            }
         }
+    }
+
+    private static void displayWhoWon(int row,int col,String player){
+        TextGraphics tg = screen.newTextGraphics();
+
     }
 
     private static boolean isHandleCoinCollection(){
