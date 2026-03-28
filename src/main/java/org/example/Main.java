@@ -39,12 +39,14 @@ public class Main {
     private static final String[] DIFFICULTY_LEVEL = {"Very Easy","Easy","Medium","Hard","Very Hard","Back"};
     private static ArrayList<int[]>monsterList = new ArrayList<>();
     private static ArrayList<int[]>coinList = new ArrayList<>();
+    private static ArrayList<int[]>trapList = new ArrayList<>();
     private static int selectedMainIndex = 0;
     private static int selectedBoardMenuIndex = 0;
     private static int selectedGridIndex = 0;
     private static int selectedDifficultyIndex = 0;
     private static int monsterCount = 0;
     private static int coinCount = 0;
+    private static int trapCount;
     private static int x;
     private static int y;
     private static int width;
@@ -493,24 +495,27 @@ public class Main {
         switch(selectedDifficultyIndex){
             case 0: monsterCount = 1;
                     coinCount = 5;
-
+                    trapCount = 1;
                 break;
 
             case 1: monsterCount = 2;
                     coinCount = 4;
-
+                    trapCount = 2;
                 break;
 
             case 2: monsterCount = 3;
                     coinCount = 3;
+                    trapCount = 3;
                 break;
 
             case 3: monsterCount = 4;
                     coinCount = 2;
+                    trapCount = 4;
                 break;
 
             case 4: monsterCount = 5;
                     coinCount = 1;
+                    trapCount = 5;
                 break;
 
             case 5: screenState = ScreenState.BACK_TO_SELECT_GRID_SIZE;
@@ -540,6 +545,7 @@ public class Main {
         colStartingPosition = gridSize /2;
         placeEntities(monsterList,monsterCount,"M");
         placeEntities(coinList,coinCount,"C");
+        placeEntities(trapList,trapCount,"T");
     }
 
     private static void drawGameBoard() {
@@ -556,6 +562,7 @@ public class Main {
         }
         entityColor(coinList, TextColor.ANSI.YELLOW_BRIGHT,"C");
         entityColor(monsterList,TextColor.ANSI.RED_BRIGHT,"M");
+        entityColor(trapList,TextColor.ANSI.MAGENTA_BRIGHT,"T");
     }
 
     private static void entityColor(ArrayList<int[]>list,TextColor textColor,String entity){
