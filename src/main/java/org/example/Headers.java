@@ -55,7 +55,6 @@ public class Headers {
             " │______╱_╱╲_╲_│╲__│_│_│ │_│╲__, │",
             "                             __╱ │",
             "                            │___╱ "
-
     };
 
     public static final String[] MAIN_MENU_HEADER = {
@@ -65,13 +64,7 @@ public class Headers {
             " │ │╲╲╱│ │╱ _` │ │ '_ ╲╲   │ │╲╲╱│ │╱ _ ╲╲ '_ ╲╲│ │ │ │",
             " │ │  │ │ (_│  │ │ │  │    │ |   │ | │ |__╱│ │ │ ││ │   |" ,
             " │_│  │_│╲╲__,_│_│_│ │_│   │_│   │_│╲╲___│_│ │_│╲╲__,_│"
-
-
-
     };
-
-
-
 
     public static final String[] MAIN_MENU_HEADER1 = {
             "  __  __         _           __  __                  ",
@@ -80,8 +73,6 @@ public class Headers {
             " │ │╲╲╱│ │╱ _` │ │ '_ ╲╲    │ │╲╲╱│ │╱ _ ╲╲ '_ ╲╲│ │ │ │",
             " │ │   │ │ (_│ │ │ │ │ │    │ │   │ │  __╱ │ │ │ │_│ │",
             " │_│   │_│╲╲__,_│_│_│ │_│   │_│   │_│╲╲___│_│ │_│╲╲__,_│"
-
-
     };
 
     public static final String[] PICK_DIFFICULTY_HEADER = {

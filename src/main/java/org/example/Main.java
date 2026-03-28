@@ -12,8 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+
 public class Main {
     public enum GameStatus{
         GAME_IN_PROGRESS,GAME_OVER,UNKNOWN_STATE
@@ -38,16 +37,12 @@ public class Main {
     private static final String[] MAIN_MENU_ITEMS = {"Choose Preset Size","Set Custom Size","Back to Main"};
     private static final String[] GRID_GAME_BOARD_SIZE = {"10 x 10", "15 x 15", "20 x 20","30 x 30", "40 x 40", "50 x 50","Back"};
     private static final String[] DIFFICULTY_LEVEL = {"Very Easy","Easy","Medium","Hard","Very Hard","Back"};
-    private static int monsterRow = 0;
-    private static int monsterCol = 0;
     private static ArrayList<int[]>monsterList = new ArrayList<>();
     private static ArrayList<int[]>coinList = new ArrayList<>();
-    private static final String GAME_HEADER_NAME = "Coin Hunter";
     private static int selectedMainIndex = 0;
     private static int selectedBoardMenuIndex = 0;
     private static int selectedGridIndex = 0;
     private static int selectedDifficultyIndex = 0;
-    private static int selectedNumberOfCoinsIndex = 0;
     private static int monsterCount = 0;
     private static int coinCount = 0;
     private static int x;
@@ -62,20 +57,16 @@ public class Main {
 
     private static final int MAX_COL_GRID_SIZE = 100;
     private static final int MAX_ROW_GRID_SIZE = 100;
-    private static final int GRID_COL = 10;
-    private static final int GRID_ROW = 10;
 
     private static int boardStartRow = 0;
     private static int boardStartCol = 0;
     private static int screenRow = 0;
     private static int screenCol = 0;
-    private static int monsterStartingPositionRow = 0;
-    private static int monsterStartingPositionCol = 0;
-    private static boolean gameBoardStatus[][];
     private static String[][] gameGrid = new String[MAX_COL_GRID_SIZE][MAX_ROW_GRID_SIZE];
     private static int gridSize;
     private static int row;
     private static int col;
+    private static String winnerMessage = "";
 
     public static void main(String[] args) {
         try {
@@ -84,24 +75,46 @@ public class Main {
             screen.stopScreen();
         }catch(IOException e) {
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-
     }
-    private static void runGameLoop()throws IOException {
+
+    private static void runGameLoop() throws IOException, InterruptedException {
         gameStatus = GameStatus.GAME_IN_PROGRESS;
         screenState = ScreenState.START_MENU;
-        while(isGameRunning && gameStatus != GameStatus.GAME_OVER) {
+        while(isGameRunning) {
             screen.clear();
             renderCurrentScreen();
+            if(gameStatus == GameStatus.GAME_OVER) {
+                adjustWinnerMessage();
+                screen.refresh();
+                Thread.sleep(3000);
+                screenState = ScreenState.START_MENU;
+                selectedMainIndex = 0;
+                winnerMessage = "";
+                resetGame();
+                continue;
+            }
             screen.refresh();
             screenRouting();
+            Thread.sleep(16);
         }
+    }
+
+    private static void resetGame() {
+        playerScore = 0;
+        monsterScore = 0;
+        rowStartingPosition = gridSize / 2;
+        colStartingPosition = gridSize / 2;
+        monsterList.clear();
+        coinList.clear();
+        initializeGameBoard();
+        gameStatus = GameStatus.GAME_IN_PROGRESS;
+        winnerMessage = "";
     }
 
     private static void createScreen()throws IOException{
-        //screen = new DefaultTerminalFactory().createScreen();
         DefaultTerminalFactory factory = new DefaultTerminalFactory();
         factory.setInitialTerminalSize(new TerminalSize(100, 100));
         screen = factory.createScreen();
@@ -125,11 +138,12 @@ public class Main {
             selectedDifficultyIndex = getKeyStroke(selectedDifficultyIndex,DIFFICULTY_LEVEL);
         }else if(screenState == ScreenState.START_GAME) {
             setInputDirection();
+            determineWinner();
         }
     }
 
     private static int getKeyStroke(int index,String[]arrItems)throws IOException{
-        KeyStroke key = screen.readInput();
+        KeyStroke key = screen.pollInput();
         if(key!=null) {
             switch(key.getKeyType()) {
                 case ArrowUp ->{
@@ -152,8 +166,8 @@ public class Main {
     private static void handleEnterButton() {
         switch(screenState) {
             case START_MENU:
+                checkForExit();
                 handleEnterAction(selectedMainIndex,0,ScreenState.MAIN_MENU_ITEMS_LIST);
-                handleEnterAction(selectedMainIndex,1,ScreenState.EXIT_GAME);
                 break;
 
             case MAIN_MENU_ITEMS_LIST:
@@ -172,11 +186,19 @@ public class Main {
         }
     }
 
+    private static void checkForExit(){
+        if(selectedMainIndex == 1){
+            isGameRunning = false;
+        }
+    }
+
    private static void determineGameDifficulty(){
         if(selectedDifficultyIndex == 5){
             screenState = ScreenState.SET_GRID_MENU_SIZE;
         }else{
             applyDifficultySettings();
+            monsterList.clear();
+            coinList.clear();
             screenState = ScreenState.START_GAME;
             setupNewGame();
         }
@@ -197,7 +219,7 @@ public class Main {
         }
     }
 
-    private static void renderCurrentScreen()throws IOException{
+    private static void renderCurrentScreen() throws IOException {
         switch(screenState) {
             case START_MENU:
                 drawOperationHeading(Headers.GAME_HEADER_TITLE);
@@ -237,31 +259,44 @@ public class Main {
         }
     }
 
+    private static void adjustWinnerMessage() {
+        if (gridSize == 50) {
+            int row = y + -5;
+            int col = (width - winnerMessage.length()) / 2;
+            displayWhoWon(row, col, winnerMessage);
+        } else if (gridSize == 40) {
+            int row = y + 1;
+            int col = (width - winnerMessage.length()) / 2;
+            displayWhoWon(row, col, winnerMessage);
+        } else {
+            int row = boardStartRow - 2;
+            int col = boardStartCol + (gridSize / 2) - (winnerMessage.length() / 2);
+            displayWhoWon(row, col, winnerMessage);
+        }
+    }
+
     private static void displayScore(int row,int col,String playerName,int score) throws IOException {
         TextGraphics tg = screen.newTextGraphics();
         String textToDraw = playerName + " " + score;
         tg.putString(row,col,textToDraw);
     }
 
-    private static void determinWinner(){
+    private static void determineWinner(){
         if(coinList.size() == 0){
             gameStatus = GameStatus.GAME_OVER;
             if(playerScore > monsterScore){
-                //player wins
-                displayWhoWon(0,0,"PLAYER WINS!");
+                winnerMessage = "PLAYER WON!";
             }else if(monsterScore > playerScore){
-                //monster wins
-                displayWhoWon(0,0,"COMPUTER WINS!");
+                winnerMessage = "MONSTERS WIN!";
             }else{
-                // draw
-                displayWhoWon(0,0,"DRAW!");
+                winnerMessage = "DRAW!";
             }
         }
     }
 
     private static void displayWhoWon(int row,int col,String player){
         TextGraphics tg = screen.newTextGraphics();
-
+        tg.putString(row,col,player);
     }
 
     private static boolean isHandleCoinCollection(){
@@ -323,36 +358,30 @@ public class Main {
     }
 
     private static void setInputDirection()throws IOException{
-        KeyStroke k = screen.readInput();
+        KeyStroke k = screen.pollInput();
         if(k == null || k.getKeyType() != KeyType.Character){
             return;
         }
         char c = Character.toLowerCase(k.getCharacter());
-        //int oldRow = rowStartingPosition;
-        //int oldCol = colStartingPosition;
         switch(c) {
             case 'w':
                 playerDirection = PlayerDirection.UP;
                 movePlayer(-1,0);
-                //movePlayerForward();
                 break;
 
             case 'a':
                 playerDirection = PlayerDirection.LEFT;
                 movePlayer(0,-1);
-                //movePlayerLeft();
                 break;
 
             case 's':
                 playerDirection = PlayerDirection.DOWN;
                 movePlayer(1,0);
-                //movePlayerDown();
                 break;
 
             case 'd':
                 playerDirection = PlayerDirection.RIGHT;
                 movePlayer(0,1);
-                //movePlayerRight();
                 break;
 
             default:
@@ -362,7 +391,6 @@ public class Main {
             rowStartingPosition = RAND.nextInt(gridSize);
             colStartingPosition = RAND.nextInt(gridSize);
         }
-        //gameGrid[oldRow][oldCol] = "*";
         monsterMovement();
     }
 
@@ -465,10 +493,12 @@ public class Main {
         switch(selectedDifficultyIndex){
             case 0: monsterCount = 1;
                     coinCount = 5;
+
                 break;
 
             case 1: monsterCount = 2;
                     coinCount = 4;
+
                 break;
 
             case 2: monsterCount = 3;
@@ -515,12 +545,29 @@ public class Main {
     private static void drawGameBoard() {
         TextGraphics tg = screen.newTextGraphics();
         gameGrid[rowStartingPosition][colStartingPosition] = "P";
+        tg.setForegroundColor(TextColor.ANSI.BLUE_BRIGHT);
         for(int i = 0; i < gridSize; i++) {
             for(int j = 0; j < gridSize; j++) {
                 String cell = gameGrid[i][j];
                 screenRow = boardStartRow + i;
                 screenCol  = boardStartCol + j;
                 tg.putString(screenCol, screenRow,cell);
+            }
+        }
+        entityColor(coinList, TextColor.ANSI.YELLOW_BRIGHT,"C");
+        entityColor(monsterList,TextColor.ANSI.RED_BRIGHT,"M");
+    }
+
+    private static void entityColor(ArrayList<int[]>list,TextColor textColor,String entity){
+        TextGraphics tg = screen.newTextGraphics();
+        for(int i = 0; i < list.size(); i++){
+            row = list.get(i)[0];
+            col = list.get(i)[1];
+            screenRow = boardStartRow + row;
+            screenCol = boardStartCol + col;
+            if(gameGrid[row][col].equals(entity)){
+                tg.setForegroundColor(textColor);
+                tg.putString(screenCol,screenRow,entity);
             }
         }
     }
