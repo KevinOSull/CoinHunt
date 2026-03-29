@@ -493,29 +493,19 @@ public class Main {
 
     private static void applyDifficultySettings(){
         switch(selectedDifficultyIndex){
-            case 0: monsterCount = 1;
-                    coinCount = 5;
-                    trapCount = 1;
+            case 0: setDifficultyValues(1,5,1);
                 break;
 
-            case 1: monsterCount = 2;
-                    coinCount = 4;
-                    trapCount = 2;
+            case 1: setDifficultyValues(2,4,2);
                 break;
 
-            case 2: monsterCount = 3;
-                    coinCount = 3;
-                    trapCount = 3;
+            case 2: setDifficultyValues(3,3,3);
                 break;
 
-            case 3: monsterCount = 4;
-                    coinCount = 2;
-                    trapCount = 4;
+            case 3: setDifficultyValues(4,2,4);
                 break;
 
-            case 4: monsterCount = 5;
-                    coinCount = 1;
-                    trapCount = 5;
+            case 4: setDifficultyValues(5,1,5);
                 break;
 
             case 5: screenState = ScreenState.BACK_TO_SELECT_GRID_SIZE;
@@ -523,6 +513,12 @@ public class Main {
 
             default: System.out.println("ERROR: SOMETHING WENT WRONG WITH NUMBER OF MONSTERS!!!");
         }
+    }
+
+    private static void setDifficultyValues(int monC,int coinC,int trapC){
+        monsterCount = monC;
+        coinCount = coinC;
+        trapCount = trapC;
     }
 
     private static void setProperties() {
@@ -560,6 +556,10 @@ public class Main {
                 tg.putString(screenCol, screenRow,cell);
             }
         }
+        drawEntities();
+    }
+
+    private static void drawEntities(){
         entityColor(coinList, TextColor.ANSI.YELLOW_BRIGHT,"C");
         entityColor(monsterList,TextColor.ANSI.RED_BRIGHT,"M");
         entityColor(trapList,TextColor.ANSI.MAGENTA_BRIGHT,"T");
