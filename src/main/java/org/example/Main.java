@@ -107,11 +107,14 @@ public class Main {
     private static void resetGame() {
         playerScore = 0;
         monsterScore = 0;
-        rowStartingPosition = gridSize / 2;
-        colStartingPosition = gridSize / 2;
         monsterList.clear();
         coinList.clear();
+        trapList.clear();
         initializeGameBoard();
+        rowStartingPosition = gridSize / 2;
+        colStartingPosition = gridSize / 2;
+        applyDifficultySettings();
+        setupNewGame();
         gameStatus = GameStatus.GAME_IN_PROGRESS;
         winnerMessage = "";
     }
@@ -301,12 +304,12 @@ public class Main {
         tg.putString(row,col,player);
     }
 
-    private static boolean isHandleCoinCollection(){
-        if (!checkBounds(row, col) && "C".equals(gameGrid[row][col])) {
-            for(int i = 0; i < coinList.size(); i++){
-                int[] coinPosition = coinList.get(i);
-                if(coinPosition[0] == row && coinPosition[1] == col){
-                    coinList.remove(i);
+    private static boolean isHandleEntityInteraction(ArrayList<int[]> list, String entitySymbol){
+        if(!checkBounds(row, col)){
+            for(int i = 0; i < list.size(); i++){
+                int[] pos = list.get(i);
+                if(pos[0] == row && pos[1] == col){
+                    list.remove(i);
                     return true;
                 }
             }
@@ -368,22 +371,22 @@ public class Main {
         switch(c) {
             case 'w':
                 playerDirection = PlayerDirection.UP;
-                movePlayer(-1,0);
+                movePlayerForward();
                 break;
 
             case 'a':
                 playerDirection = PlayerDirection.LEFT;
-                movePlayer(0,-1);
+                movePlayerLeft();
                 break;
 
             case 's':
                 playerDirection = PlayerDirection.DOWN;
-                movePlayer(1,0);
+                movePlayerDown();
                 break;
 
             case 'd':
                 playerDirection = PlayerDirection.RIGHT;
-                movePlayer(0,1);
+                movePlayerRight();
                 break;
 
             default:
@@ -396,16 +399,33 @@ public class Main {
         monsterMovement();
     }
 
-    private static void movePlayer(int deltaRow,int deltaCol){
-        int oldRow = rowStartingPosition;
-        int oldCol = colStartingPosition;
-        rowStartingPosition +=deltaRow;
-        colStartingPosition +=deltaCol;
-        syncPlayerPosition();
-        if(hasPlayerOrMonsterPickedUpCoin("P")){
-            playerScore++;
+    private static void movePlayerForward() {
+        movePlayerTo(rowStartingPosition + 1, colStartingPosition);
+    }
+
+    private static void movePlayerDown() {
+        movePlayerTo(rowStartingPosition - 1, colStartingPosition);
+    }
+
+    private static void movePlayerLeft() {
+        movePlayerTo(rowStartingPosition, colStartingPosition - 1);
+    }
+
+    private static void movePlayerRight() {
+        movePlayerTo(rowStartingPosition, colStartingPosition + 1);
+    }
+
+    private static void movePlayerTo(int newRow, int newCol) {
+        if(isMovementOutOfBounds(newRow, newCol)) {
+            newRow = RAND.nextInt(gridSize);
+            newCol = RAND.nextInt(gridSize);
         }
-        gameGrid[oldRow][oldCol] = "*";
+        gameGrid[rowStartingPosition][colStartingPosition] = "*";
+        rowStartingPosition = newRow;
+        colStartingPosition = newCol;
+        syncPlayerPosition();
+        playerScore = updateScores("P", playerScore);
+        gameGrid[rowStartingPosition][colStartingPosition] = "P";
     }
 
     private static void monsterMovement(){
@@ -541,6 +561,7 @@ public class Main {
         colStartingPosition = gridSize /2;
         placeEntities(monsterList,monsterCount,"M");
         placeEntities(coinList,coinCount,"C");
+        System.out.println("Trap number: " + trapCount);
         placeEntities(trapList,trapCount,"T");
     }
 
@@ -565,17 +586,17 @@ public class Main {
         entityColor(trapList,TextColor.ANSI.MAGENTA_BRIGHT,"T");
     }
 
-    private static void entityColor(ArrayList<int[]>list,TextColor textColor,String entity){
+    private static void entityColor(ArrayList<int[]> list, TextColor textColor, String entity){
         TextGraphics tg = screen.newTextGraphics();
         for(int i = 0; i < list.size(); i++){
-            row = list.get(i)[0];
-            col = list.get(i)[1];
-            screenRow = boardStartRow + row;
-            screenCol = boardStartCol + col;
-            if(gameGrid[row][col].equals(entity)){
-                tg.setForegroundColor(textColor);
-                tg.putString(screenCol,screenRow,entity);
-            }
+            int r = list.get(i)[0];
+            int c = list.get(i)[1];
+            int screenRow = boardStartRow + r;
+            int screenCol = boardStartCol + c;
+
+            tg.setForegroundColor(textColor);
+            tg.putString(screenCol, screenRow, entity);
+            tg.setForegroundColor(TextColor.ANSI.DEFAULT);
         }
     }
 
@@ -585,39 +606,54 @@ public class Main {
     }
 
     private static void moveMonsterForward() {
+        gameGrid[row][col] = "*";
         row--;
-        if(hasPlayerOrMonsterPickedUpCoin("M")){
-            monsterScore++;
-        }
+        handleOutOfBounds();
+        monsterScore = updateScores("M",monsterScore);
+        gameGrid[row][col] = "M";
     }
 
     private static void moveMonsterLeft() {
+        gameGrid[row][col] = "*";
         col--;
-        if(hasPlayerOrMonsterPickedUpCoin("M")){
-            monsterScore++;
-        }
+        handleOutOfBounds();
+        monsterScore = updateScores("M",monsterScore);
+        gameGrid[row][col] = "M";
     }
 
     private static void moveMonsterRight() {
+        gameGrid[row][col] = "*";
         col++;
-        if(hasPlayerOrMonsterPickedUpCoin("M")){
-            monsterScore++;
-        }
+        handleOutOfBounds();
+        monsterScore = updateScores("M",monsterScore);
+        gameGrid[row][col] = "M";
     }
 
     private static void moveMonsterDown() {
+        gameGrid[row][col] = "*";
         row++;
-        if(hasPlayerOrMonsterPickedUpCoin("M")){
-            monsterScore++;
-        }
+        handleOutOfBounds();
+        monsterScore = updateScores("M",monsterScore);
+        gameGrid[row][col] = "M";
     }
 
-    private static boolean hasPlayerOrMonsterPickedUpCoin(String player){
-        if(isHandleCoinCollection()){
-            gameGrid[row][col] = player;
-            return true;
+    private static int updateScores(String entitySymbol, int score){
+        if(isHandleEntityInteraction(coinList, "C")){
+            return score + 1;
         }
-        return false;
+        if(isHandleEntityInteraction(trapList, "T")){
+            return preventNegativeScore(score);
+        }
+        return score;
+    }
+
+    private static int preventNegativeScore(int score){
+        if(score > 0){
+            return score -1;
+        }else{
+            score = 0;
+        }
+        return score;
     }
 
     private static boolean isMovementOutOfBounds(int row,int col) {
@@ -708,30 +744,57 @@ public class Main {
 
 
 
+/* private static boolean isEntityInterationAtPosition(String player){
+        if(isHandleEntityInteraction(coinList,"C")){
+            return true;
+        }
+        if(isHandleEntityInteraction(trapList,"T")){
+            return false;
+        }
+        return false;
+    }*/
 
 
 
 
+/*private static void entityColor(ArrayList<int[]>list,TextColor textColor,String entity){
+        TextGraphics tg = screen.newTextGraphics();
+        for(int i = 0; i < list.size(); i++){
+            row = list.get(i)[0];
+            col = list.get(i)[1];
+            screenRow = boardStartRow + row;
+            screenCol = boardStartCol + col;
+            if(gameGrid[row][col].equals(entity)){
+                tg.setForegroundColor(textColor);
+                tg.putString(screenCol,screenRow,entity);
+                tg.setForegroundColor(TextColor.ANSI.DEFAULT);
+            }
+        }
+    }*/
 
+    /*private static int updateScores(String entitySymbol,int score){
+       if(gameGrid[row][col].equals("C")){
+           isEntityInterationAtPosition(entitySymbol);
+           return score +1;
+       }else if(gameGrid[row][col].equals("T")){
+           isEntityInterationAtPosition(entitySymbol);
+           return preventNegativeScore(score);
+       }
+       return score;
+    }*/
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    /*private static boolean isHandleEntityInteraction(ArrayList<int[]>list,String entitySymbol){
+        if(!checkBounds(row,col) && entitySymbol.equals(gameGrid[row][col])){
+            for(int i = 0; i < list.size(); i++){
+                int[] listPos = list.get(i);
+                if(listPos[0] == row && listPos[1] == col){
+                    list.remove(i);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }*/
 
     /*private static boolean isHandleCoinCollection(){
         if(gameGrid[row][col].equals("C")){
@@ -747,13 +810,6 @@ public class Main {
         }
         return false;
     }*/
-
-
-
-
-
-
-
 
     /*private static void monsterMovement() {
         //int oldRow = monsterStartingPositionRow;
